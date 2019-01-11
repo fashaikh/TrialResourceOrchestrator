@@ -31,7 +31,7 @@ namespace TrialResourceOrchestrator.FunctionApp
     {
 
         //private static string key = TelemetryConfiguration.Active.InstrumentationKey = System.Environment.GetEnvironmentVariable("APPINSIGHTS_INSTRUMENTATIONKEY", EnvironmentVariableTarget.Process);
-        //private static TelemetryClient telemetry = new TelemetryClient() { InstrumentationKey = key };
+        //private static TelemetryClient telemetry = new TelemetryClient() { InstrumentationKey = key }; 
 
 
         [FunctionName("ManageResources")]
