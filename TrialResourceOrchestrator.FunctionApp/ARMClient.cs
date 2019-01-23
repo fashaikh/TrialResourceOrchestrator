@@ -3,6 +3,7 @@ using Microsoft.Azure.Management.ResourceManager.Fluent;
 using Microsoft.Azure.Management.ResourceManager.Fluent.Authentication;
 using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
 using Microsoft.Azure.Services.AppAuthentication;
+using Microsoft.Extensions.Logging;
 using Microsoft.Rest;
 using System;
 using System.Collections.Generic;
@@ -18,10 +19,19 @@ namespace TrialResourceOrchestrator.FunctionApp
         private static object _azureClient;
         private static DateTime _tokenExpiry = DateTime.MinValue;
 
-        public static async Task<IAuthenticated> GetAzureClient(TrialResource resource)
+        public static async Task<IAuthenticated> GetAzureClient(TrialResource resource, ILogger log)
         {
-            if (_azureClient == null)
+            if (_azureClient == null || DateTime.UtcNow >= _tokenExpiry)
             {
+                if (DateTime.UtcNow >= _tokenExpiry)
+                {
+                    log.LogInformation($"Renewing token at {DateTime.UtcNow.ToLongDateString()}");
+                }
+                else
+                {
+                    log.LogInformation($"Creating new azureclient at {DateTime.UtcNow.ToLongDateString()}");
+
+                }
                 var tenantId = resource.TenantId;
                 var tokenCredentials = new TokenCredentials(await _azureServiceTokenProvider.GetAccessTokenAsync("https://management.azure.com/"));
 
@@ -29,14 +39,14 @@ namespace TrialResourceOrchestrator.FunctionApp
                     tokenCredentials,
                     tokenCredentials,
                     tenantId,
-                    AzureEnvironment.FromName(resource.AzureEnvironment));
+                    AzureEnvironment.FromName(resource.Template.AzureEnvironment));
                 var client = RestClient
                     .Configure()
-                    .WithEnvironment(AzureEnvironment.FromName(resource.AzureEnvironment))
-                    .WithLogLevel(resource.DeploymentLoggingLevel.ToEnum<HttpLoggingDelegatingHandler.Level>())
+                    .WithEnvironment(AzureEnvironment.FromName(resource.Template.AzureEnvironment))
+                    .WithLogLevel(resource.Template.DeploymentLoggingLevel.ToEnum<HttpLoggingDelegatingHandler.Level>())
                     .WithCredentials(azureCredentials)
                     .Build();
-                _tokenExpiry = DateTime.UtcNow;
+                _tokenExpiry = DateTime.UtcNow.AddMinutes(30);
                 _azureClient = Azure
                     .Authenticate(client, tenantId);
             }

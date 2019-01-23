@@ -1,34 +1,130 @@
 [
   {
     "appService": "Web",
-    "subscriptions": [ "41270b4f-f2f8-4191-a196-49221677f922", "6897a64a-87c8-4fc9-8a34-36fffa3bb0b4", "bb7ba361-d9f9-4f8f-9923-57ec19c97575" ]
+    "subscriptions": [ "41270b4f-f2f8-4191-a196-49221677f922", "6897a64a-87c8-4fc9-8a34-36fffa3bb0b4", "9a007eae-b5f7-40d0-93c8-3362614532d0" ],
+    "regions": [
+      "Central US",
+      "East US",
+      "West US",
+      "North Europe",
+      "West Europe",
+      "North Central US",
+      "South Central US",
+      "East Asia",
+      "Southeast Asia",
+      "Japan West",
+      "Japan East",
+      "Brazil South",
+      "Australia East",
+      "Australia Southeast",
+      "UK South",
+      "UK West",
+      "Canada Central",
+      "Canada East",
+      "West Central US",
+      "West US 2",
+      "East US 2"
+    ]
   },
   {
     "appService": "Api",
-    "subscriptions": [ "41270b4f-f2f8-4191-a196-49221677f922", "6897a64a-87c8-4fc9-8a34-36fffa3bb0b4", "bb7ba361-d9f9-4f8f-9923-57ec19c97575" ]
+    "subscriptions": [ "41270b4f-f2f8-4191-a196-49221677f922", "6897a64a-87c8-4fc9-8a34-36fffa3bb0b4", "9a007eae-b5f7-40d0-93c8-3362614532d0" ],
+    "regions": [
+      "Central US",
+      "East US",
+      "West US",
+      "North Europe",
+      "West Europe",
+      "North Central US",
+      "South Central US",
+      "East Asia",
+      "Southeast Asia",
+      "Japan West",
+      "Japan East",
+      "Brazil South",
+      "Australia East",
+      "Australia Southeast",
+      "UK South",
+      "UK West",
+      "Canada Central",
+      "Canada East",
+      "West Central US",
+      "West US 2",
+      "East US 2"
+    ]
   },
   {
     "appService": "Logic",
-    "subscriptions": [ "41270b4f-f2f8-4191-a196-49221677f922", "6897a64a-87c8-4fc9-8a34-36fffa3bb0b4", "bb7ba361-d9f9-4f8f-9923-57ec19c97575" ]
+    "subscriptions": [ "41270b4f-f2f8-4191-a196-49221677f922", "6897a64a-87c8-4fc9-8a34-36fffa3bb0b4", "9a007eae-b5f7-40d0-93c8-3362614532d0" ],
+    "regions": [
+      "Central US",
+      "East US",
+      "West US",
+      "North Europe",
+      "West Europe",
+      "North Central US",
+      "South Central US",
+      "East Asia",
+      "Southeast Asia",
+      "Japan West",
+      "Japan East",
+      "Brazil South",
+      "Australia East",
+      "Australia Southeast",
+      "UK South",
+      "UK West",
+      "Canada Central",
+      "Canada East",
+      "West Central US",
+      "West US 2",
+      "East US 2"
+    ]
   },
   {
     "appService": "Function",
-    "subscriptions": [ "41270b4f-f2f8-4191-a196-49221677f922", "6897a64a-87c8-4fc9-8a34-36fffa3bb0b4", "bb7ba361-d9f9-4f8f-9923-57ec19c97575" ]
+    "subscriptions": [ "41270b4f-f2f8-4191-a196-49221677f922", "6897a64a-87c8-4fc9-8a34-36fffa3bb0b4", "9a007eae-b5f7-40d0-93c8-3362614532d0" ],
+    "regions": [
+      "Central US",
+      "East US",
+      "West US",
+      "North Europe",
+      "West Europe",
+      "North Central US",
+      "South Central US",
+      "East Asia",
+      "Southeast Asia",
+      "Japan West",
+      "Japan East",
+      "Brazil South",
+      "Australia East",
+      "Australia Southeast",
+      "UK South",
+      "UK West",
+      "Canada Central",
+      "Canada East",
+      "West Central US",
+      "West US 2",
+      "East US 2"
+    ]
   },
   {
     "appService": "Containers",
-    "subscriptions": [ "a2dcd8f4-a116-416b-9e6e-950162d7cb1e", "9a007eae-b5f7-40d0-93c8-3362614532d0" ]
+    "subscriptions": [ "a2dcd8f4-a116-416b-9e6e-950162d7cb1e" ],
+    "regions": [ "West US" ]
   },
   {
     "appService": "MonitoringTools",
-    "subscriptions": [ ]
+    "subscriptions": [],
+    "regions": []
   },
   {
     "appService": "Linux",
-    "subscriptions": [ "a2dcd8f4-a116-416b-9e6e-950162d7cb1e", "9a007eae-b5f7-40d0-93c8-3362614532d0"]
+    "subscriptions": [ "6897a64a-87c8-4fc9-8a34-36fffa3bb0b4", "a2dcd8f4-a116-416b-9e6e-950162d7cb1e", "9a007eae-b5f7-40d0-93c8-3362614532d0" ],
+    "regions": [ "West US"]
   },
   {
     "appService": "VSCodeLinux",
-    "subscriptions": [ "a2dcd8f4-a116-416b-9e6e-950162d7cb1e", "9a007eae-b5f7-40d0-93c8-3362614532d0" ]
+    "subscriptions": [ "bb7ba361-d9f9-4f8f-9923-57ec19c97575" ],
+    "regions": ["West US"]
   }
 ]

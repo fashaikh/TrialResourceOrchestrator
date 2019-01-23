@@ -9,12 +9,20 @@
   <ItemGroup>
     <None Remove="ARMTemplate.json" />
     <None Remove="config\config.json" />
+    <None Remove="config\LinuxResource.json" />
     <None Remove="config\templates.json" />
+    <None Remove="config\VSCodeLinux.json" />
     <None Remove="FreeFunctionAppARMTemplate.json" />
     <None Remove="FreeSiteARMTemplate.json" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="config\FreeFunctionAppARMTemplate.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="config\LinuxResource.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="config\VSCodeLinux.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
     <Content Include="config\FreeSiteARMTemplate.json">
@@ -35,7 +43,7 @@
     <PackageReference Include="Microsoft.Azure.Management.Fluent" Version="1.18.0" />
     <PackageReference Include="Microsoft.Azure.Management.ResourceManager.Fluent" Version="1.18.0" />
     <PackageReference Include="Microsoft.Azure.Services.AppAuthentication" Version="1.0.3" />
-    <PackageReference Include="Microsoft.Azure.WebJobs.Extensions.DurableTask" Version="1.7.0" />
+    <PackageReference Include="Microsoft.Azure.WebJobs.Extensions.DurableTask" Version="1.7.1" />
     <PackageReference Include="Microsoft.Azure.WebJobs.Extensions.Storage" Version="3.0.2" />
     <PackageReference Include="Microsoft.NET.Sdk.Functions" Version="1.0.24" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />

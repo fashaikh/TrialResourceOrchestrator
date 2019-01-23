@@ -23,6 +23,7 @@ using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.WindowsAzure.Storage;
 using Microsoft.WindowsAzure.Storage.Queue;
+using Microsoft.Rest.Azure;
 
 namespace TrialResourceOrchestrator.FunctionApp
 {
@@ -35,21 +36,24 @@ namespace TrialResourceOrchestrator.FunctionApp
 
 
         [FunctionName("ManageResources")]
-        public static async Task ManageResources([OrchestrationTrigger] DurableOrchestrationContext context)
+        public static async Task ManageResources([OrchestrationTrigger] DurableOrchestrationContext context, ILogger log)
         {
             context.SetCustomStatus("StartingManageResources");
             var templatesWithMetadata = await context.CallActivityAsync<List<BaseTemplate>>("GetTemplatesToManage", null);
 
-            foreach (var template in templatesWithMetadata)
+            foreach (var template in templatesWithMetadata.Where(a=> a.Subscriptions.Count>0 && a.QueueSizeToMaintain>0))
             {
                 var count = queueClient().GetQueueReference(template.QueueName).ApproximateMessageCount ?? 0;
+                var resourcegroupsCreated = await context.CallActivityAsync<int>("GetResourceGroupsCreated", template);
+                log.LogInformation($"Template: {template.Name} has queueSize: {count} and resourcegroupscreated: {resourcegroupsCreated}");
                 template.CurrentQueueSize = count;
+                template.ResourceGroupsCreated = resourcegroupsCreated;
             }
             context.SetCustomStatus("SetItemsToCreate");
             var taskList = new List<Task>();
-            taskList.AddRange(templatesWithMetadata.Where(a => a.ItemstoCreate > 0).Select(a => context.CallSubOrchestratorAsync("CreateATrialResource", new TrialResource { TemplateName = a.Name})));
+            taskList.AddRange(templatesWithMetadata.Where(a => a.ItemstoCreate > 0 && a.QueueSizeToMaintain > 0).Select(a => context.CallSubOrchestratorAsync("CreateATrialResource", new TrialResource { Template = a })));
             context.SetCustomStatus("SetItemsToCreate");
-            Task.WaitAll(taskList.ToArray());
+            await Task.WhenAll(taskList.ToArray());
             context.SetCustomStatus("MissingItemsCreated");
             DateTime nextCleanup = context.CurrentUtcDateTime.AddSeconds(10);
             await context.CreateTimer(nextCleanup, CancellationToken.None);
@@ -76,29 +80,26 @@ namespace TrialResourceOrchestrator.FunctionApp
 
             //var outputs = new List<string>();
 
-            resource = await context.CallActivityAsync<TrialResource>("GetSubscriptionAndResourceGroupName", resource); 
+            resource = GetSubscriptionAndResourceGroupName(resource); 
             context.SetCustomStatus("ResourceConfigSet");
-            resource.InstanceId = context.InstanceId;
 
             resource = await context.CallActivityAsync<TrialResource>("CreateResourceGroup", resource);
             context.SetCustomStatus("ResourceGroupCreated");
-            resource.InstanceId = context.InstanceId;
 
             resource = await context.CallActivityAsync<TrialResource>("StartDeployment", resource);
             context.SetCustomStatus("DeploymentStarted");
-            resource.InstanceId = context.InstanceId;
-            resource.DeploymentCheckAttempt = 0;
-            while ((resource.Status != ResourceStatus.AvailableForAssignment && resource.Status != ResourceStatus.Error) &&  resource.DeploymentCheckAttempt++ < resource.DeploymentCheckTries)
+            resource.Template.DeploymentCheckAttempt = 0;
+            while ((resource.Status != ResourceStatus.AvailableForAssignment && resource.Status != ResourceStatus.Error) &&  resource.Template.DeploymentCheckAttempt++ < resource.Template.DeploymentCheckTries)
             {
-                SdkContext.DelayProvider.Delay(resource.DeploymentCheckIntervalSeconds * 1000);
+                SdkContext.DelayProvider.Delay(resource.Template.DeploymentCheckIntervalSeconds * 1000);
                 resource = await context.CallActivityAsync<TrialResource>("CheckDeploymentStatus", resource);
                 context.SetCustomStatus("DeploymentGoingOn");
-                resource.InstanceId = context.InstanceId;
             }
             context.SetCustomStatus("DeploymentCompleted");
-            resource.InstanceId = context.InstanceId;
 
-            await queueClient().GetQueueReference(resource.queuename).AddMessageAsync(new CloudQueueMessage(JsonConvert.SerializeObject(resource)));
+            resource = await context.CallActivityAsync<TrialResource>("AddResourceGroupToQueue", resource);
+            context.SetCustomStatus("ResourceAddedToQueue");
+
             //telemetry.TrackDependency( "ARM", "CreateATrialResource", JsonConvert.SerializeObject(resource), start, DateTime.UtcNow-start, true);
             // sleep between cleanups
             //DateTime nextCleanup = context.CurrentUtcDateTime.AddSeconds(10);
@@ -109,60 +110,113 @@ namespace TrialResourceOrchestrator.FunctionApp
 
         }
 
+        [FunctionName("AddResourceGroupToQueue")]
+        public static async Task AddResourceGroupToQueue([ActivityTrigger] TrialResource resource, ILogger log)
+        {
+            try
+            {
+                log.LogInformation($"Adding ResourceGroup {resource.ResourceGroupName} to queue {resource.Template.QueueName}  in {resource.SubscriptionId} region {resource.Template.Region}");
+
+                var queue = queueClient().GetQueueReference(resource.Template.QueueName);
+                await queue.CreateIfNotExistsAsync();
+                await queue.AddMessageAsync(new CloudQueueMessage(JsonConvert.SerializeObject(resource)));
+
+            }
+            catch (Exception ex)
+            {
+                LogException("Exception queueing up ResourceGroup", ex, log);
+            }
+        }
+
+        [FunctionName("GetResourceGroupsCreated")]
+        public static async Task<int> GetResourceGroupsCreated([ActivityTrigger] BaseTemplate template, ILogger log)
+        {
+            try
+            {
+                log.LogInformation($"Getting ResourceGroupsCreated in all subscriptions");
+                var resource = new TrialResource { Template = template, TenantId= template.TenantId };
+                var armClient = await ArmClient.GetAzureClient(resource, log);
+                var count = 0;
+                foreach (var sub in resource.Template.Subscriptions)
+                {
+                    var resourceGroups= await armClient
+                    .WithSubscription(sub)
+                    .ResourceGroups
+                    .ListAsync();
+                    count += resourceGroups.Where(a => GetQueueNameFromResourceGroupName(a.Name).Equals(template.QueueName)).Count();
+                }
+                return count;
+            }
+            catch (Exception ex)
+            {
+                LogException("Exception getting ResourceGroupsCreated", ex, log);
+            }
+            return -1;
+        }
+
+        private static string GetQueueNameFromResourceGroupName(string s)
+        {
+            var split = s.Split('-');
+            return string.Join('-', split.Skip(1).SkipLast(1));
+        }
+
         [FunctionName("CreateResourceGroup")]
         public static async Task<TrialResource> CreateResourceGroup([ActivityTrigger] TrialResource resource, ILogger log)
         {
             try
             {
-                log.LogInformation($"Creating ResourceGroup {resource.ResourceGroupName} in {resource.SubscriptionId} region {resource.Region}");
+                log.LogInformation($"Creating ResourceGroup {resource.ResourceGroupName} in {resource.SubscriptionId} region {resource.Template.Region}");
 
-                var armClient = await ArmClient.GetAzureClient(resource);
+                var armClient = await ArmClient.GetAzureClient(resource,log);
                     await armClient
                     .WithSubscription(resource.SubscriptionId)
                     .ResourceGroups.Define(resource.ResourceGroupName)
-                    .WithRegion(Region.Create(resource.Region))
+                    .WithRegion(Region.Create(resource.Template.Region))
                     .CreateAsync();
 
-                return resource;
             }
             catch (Exception ex) {
-                log.LogError($"Exception creating ResourceGroup: {ex.Message } : {ex.StackTrace} : {ex.InnerException.Message}");
-                throw ex;
+                LogException("Exception creating ResourceGroup", ex, log);
             }
+            return resource;
+
         }
         [FunctionName("StartDeployment")]
         public static async Task<TrialResource> StartDeployment([ActivityTrigger] TrialResource resource, ILogger log)
         {
             try
             {
-                log.LogInformation($"Creating ResourceGroup {resource.ResourceGroupName} in {resource.SubscriptionId}");
-                var azure = await ArmClient.GetAzureClient(resource);
+                log.LogInformation($"Starting deployment {resource.ResourceGroupName} in {resource.SubscriptionId}");
+                var azure = await ArmClient.GetAzureClient(resource, log);
                 await azure
                         .WithSubscription(resource.SubscriptionId)
                         .Deployments.Define(resource.AppServiceName)
                         .WithExistingResourceGroup(resource.ResourceGroupName)
-                        .WithTemplateLink(resource.ARMTemplateLink, null)
-                        .WithParameters(JsonConvert.DeserializeObject(resource.ARMParameters))
-                        .WithMode(resource.DeploymentMode.ToEnum<DeploymentMode>())
+                        .WithTemplateLink(resource.Template.ARMTemplateLink, null)
+                        .WithParameters(JsonConvert.DeserializeObject(resource.Template.ARMParameters))
+                        .WithMode(resource.Template.DeploymentMode.ToEnum<DeploymentMode>())
                         .CreateAsync();
 
-
-                return resource;
             }
             catch (Exception ex)
             {
-                log.LogError($"Exception creating ResourceGroup: {ex.Message } : {ex.StackTrace} : {ex.InnerException.Message}");
-                throw ex;
+                LogException("Exception starting deployment", ex, log);
             }
+            return resource;
         }
 
+        private static void LogException(string prefix, Exception ex, ILogger log)
+        {
+            log.LogError($"{prefix} : {ex.Message } : {ex.StackTrace} : {(ex.InnerException == null ? ex.InnerException.Message : String.Empty)}: {((ex is CloudException) ? ((CloudException)ex).Body.Code + ((CloudException)ex).Body.Message + ((CloudException)ex).Body.Details + ((CloudException)ex).Body.AdditionalInfo : String.Empty)}");
+
+        }
         [FunctionName("CheckDeploymentStatus")]
         public static async Task<TrialResource> CheckDeploymentStatus([ActivityTrigger] TrialResource resource, ILogger log)
         {
             try
             {
-                log.LogInformation($"Checking Deployment Status {resource.ResourceGroupName} in {resource.SubscriptionId} |Attempt:{resource.DeploymentCheckAttempt}/{resource.DeploymentCheckTries} |Template{resource.TemplateName} |Region:{resource.Region}");
-                var azure = await ArmClient.GetAzureClient(resource);
+                log.LogInformation($"Checking Deployment Status {resource.ResourceGroupName} in {resource.SubscriptionId} |Attempt:{resource.Template.DeploymentCheckAttempt}/{resource.Template.DeploymentCheckTries} |Template{resource.Template.Name} |Region:{resource.Template.Region}");
+                var azure = await ArmClient.GetAzureClient(resource,log);
 
                 var deployment = await azure.WithSubscription(resource.SubscriptionId).Deployments.GetByResourceGroupAsync(resource.ResourceGroupName, resource.AppServiceName);
                 if (StringComparer.OrdinalIgnoreCase.Equals(deployment.ProvisioningState, "Succeeded"))
@@ -180,7 +234,7 @@ namespace TrialResourceOrchestrator.FunctionApp
             }
             catch (Exception ex)
             {
-                log.LogError($"Exception checking DeploymentStatus: {ex.Message } : {ex.StackTrace} : {ex.InnerException.Message}");
+                LogException("Exception checking DeploymentStatus", ex, log);
             }
             return resource;
         }
@@ -188,10 +242,13 @@ namespace TrialResourceOrchestrator.FunctionApp
         public static async Task<List<BaseTemplate>> GetTemplatesToManage([ActivityTrigger]string resource, ExecutionContext executionContext)
         {
             List<BaseTemplate> templates = JsonConvert.DeserializeObject<List<BaseTemplate>>(await File.ReadAllTextAsync(System.IO.Path.Combine(executionContext.FunctionAppDirectory, "config", "templates.json")));
-            List<Config> config = JsonConvert.DeserializeObject<List<Config>>(await File.ReadAllTextAsync(System.IO.Path.Combine(executionContext.FunctionAppDirectory, "config", "templates.json")));
+            List<Config> config = JsonConvert.DeserializeObject<List<Config>>(await File.ReadAllTextAsync(System.IO.Path.Combine(executionContext.FunctionAppDirectory, "config", "config.json")));
             foreach (var template in templates)
             {
-                template.Subscriptions = config.First(a => a.AppService == template.AppService.ToString()).Subscriptions;
+                var configToUse = config.First(a => a.AppService == template.AppService.ToString());
+                template.Subscriptions = configToUse.Subscriptions;
+                template.TenantId = configToUse.TenantId;
+                template.Region = configToUse.Regions.Count > 0 ? configToUse.Regions.OrderBy(a => Guid.NewGuid()).FirstOrDefault() : String.Empty;
             }
             return templates.ToList();
         }
@@ -203,28 +260,17 @@ namespace TrialResourceOrchestrator.FunctionApp
             return storageAccount.CreateCloudQueueClient();
         }
 
-        [FunctionName("GetSubscriptionAndResourceGroupName")]
-        public static async Task<TrialResource> GetSubscriptionAndResourceGroupName([ActivityTrigger]TrialResource resource, ExecutionContext executionContext)
+        public static TrialResource GetSubscriptionAndResourceGroupName([ActivityTrigger]TrialResource resource)
         {
-            List<BaseTemplate> templates = JsonConvert.DeserializeObject<List<BaseTemplate>>(await File.ReadAllTextAsync(System.IO.Path.Combine(executionContext.FunctionAppDirectory, "config", "templates.json")));
-            var template = templates.First(a => a.Name == resource.TemplateName);
-            resource.AppService = template.AppService.ToString();
-            resource.SubscriptionId = template.Subscriptions.OrderBy(a=>Guid.NewGuid()).FirstOrDefault();
-            resource.TenantId = resource.TenantId;
+            resource.AppService = resource.Template.AppService.ToString();
+            resource.SubscriptionId = resource.Template.Subscriptions.OrderBy(a=>Guid.NewGuid()).FirstOrDefault();
+            resource.TenantId = resource.Template.TenantId;
             var guid = Guid.NewGuid().ToString().Split('-')[1];
-            resource.ResourceGroupName = "TRY-RG-"+ guid;
-            resource.AppServiceName = "testappservicename-" + guid;
-            resource.Region = Region.USWest.Name;
-            resource.AzureEnvironment = AzureEnvironment.AzureGlobalCloud.Name;
-            resource.DeploymentLoggingLevel = HttpLoggingDelegatingHandler.Level.BodyAndHeaders.ToString();
-            resource.DeploymentCheckTries= 60;
-            resource.DeploymentMode = DeploymentMode.Complete.ToString();
-            resource.DeploymentCheckIntervalSeconds = 10;
-
-            resource.ARMTemplateLink = "https://tro.blob.core.windows.net/armtemplates/"+ template.CsmTemplateFilePath + ".json";
-            resource.ARMParameters = JsonConvert.SerializeObject( new Dictionary<string, Dictionary<string, object>>
+            resource.ResourceGroupName = $"try-{resource.Template.QueueName}-{guid}";
+            resource.AppServiceName = resource.ResourceGroupName;
+            resource.Template.ARMParameters = JsonConvert.SerializeObject( new Dictionary<string, Dictionary<string, object>>
             {
-                { "msdeployPackageUrl", new Dictionary<string, object>{{"value", template.MSDeployPackageUrl} }},
+                { "msdeployPackageUrl", new Dictionary<string, object>{{"value", resource.Template.MSDeployPackageUrl??String.Empty} }},
                 { "appServiceName", new Dictionary<string, object>{{"value", resource.AppServiceName } }}
             });
             return resource;
@@ -237,7 +283,7 @@ namespace TrialResourceOrchestrator.FunctionApp
             ILogger log)
         {
             // Function input comes from the request content.
-            string instanceId = await starter.StartNewAsync("CreateATrialResource", new TrialResource {TemplateName="Express" });
+            string instanceId = await starter.StartNewAsync("CreateATrialResource", new TrialResource {});
 
             log.LogInformation($"Started orchestration with ID = '{instanceId}'.");
 
@@ -260,7 +306,7 @@ namespace TrialResourceOrchestrator.FunctionApp
             {
                 // An instance with the specified ID doesn't exist, create one.
                 //await starter.StartNewAsync("Orchestration_Loop", instanceId, null);
-                await starter.StartNewAsync("ManageResources", instanceId, new TrialResource { TemplateName = "Express" });
+                await starter.StartNewAsync("ManageResources", instanceId, new TrialResource { });
 
                 log.LogInformation($"Started Orchestration_Loop with ID = '{instanceId}'.");
                 await starter.WaitForCompletionOrCreateCheckStatusResponseAsync(null, instanceId);
@@ -280,6 +326,22 @@ namespace TrialResourceOrchestrator.FunctionApp
             }
 
             return;
+        }
+
+        [FunctionName("StopInstance")]
+        public static async Task<HttpResponseMessage> StopInstance(
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post")]HttpRequestMessage req,
+            [OrchestrationClient]DurableOrchestrationClient starter,
+            ILogger log)
+        {
+            const string instanceId = "GlobalInstance";
+
+            //Check if an instance with the specified ID already exists.
+            var existingInstance = await starter.GetStatusAsync(instanceId);
+            log.LogInformation($"Orchestration_Loop with ID '{instanceId}' had status '{existingInstance.RuntimeStatus}' at {DateTime.UtcNow.ToString()}");
+
+            await starter.TerminateAsync(instanceId, "Manually killed");
+            return starter.CreateCheckStatusResponse(req, instanceId);
         }
     }
 

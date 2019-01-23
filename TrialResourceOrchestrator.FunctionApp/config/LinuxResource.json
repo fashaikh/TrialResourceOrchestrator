@@ -1,0 +1,80 @@
+{
+  "properties": {
+    "mode": "Complete",
+    "parameters": {
+      "msdeployPackageUrl": {
+        "type": "string",
+        "defaultValue": ""
+      },
+      "appServiceName": {
+        "type": "string",
+        "defaultValue": "",
+        "metadata": { "description": "The name of your App Service" }
+      }
+    },
+    "variables": {
+      "appServiceName": "[toLower(parameters('appServiceName'))]",
+      "hostingPlanName": "[toLower( concat(variables('appServiceName'), '-spotplan' ))]"
+    },
+    "template": {
+      "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+      "contentVersion": "1.0.0.0",
+      "parameters": {
+        "siteName": { "type": "string" },
+        "aspName": { "type": "string" }
+      },
+      "resources": [
+        {
+          "apiVersion": "2016-09-01",
+          "name": "[variables('hostingPlanName')]",
+          "type": "Microsoft.Web/serverfarms",
+          "location": "[resourceGroup().location]",
+          "properties": {
+            "maximumNumberOfWorkers": 1,
+            "geoRegion": "[resourceGroup().location]",
+            "reserved": true,
+            "isSpot": true,
+            "planName": "VirtualDedicatedPlan"
+          },
+          "sku": {
+            "name": "B1",
+            "tier": "Basic",
+            "size": "B1",
+            "family": "B",
+            "capacity": 1
+          }
+        },
+        {
+          "apiVersion": "2016-08-01",
+          "name": "[variables('appServiceName')]",
+          "type": "Microsoft.Web/sites",
+          "location": "[resourceGroup().location]",
+          "dependsOn": [ "[variables('hostingPlanName')]" ],
+          "properties": {
+            "serverFarmId": "[variables('hostingPlanName')]",
+            "siteConfig": {
+              "properties": {
+                "numberOfWorkers": "1",
+                "linuxFxVersion": "NODE|9.4"
+              }
+            },
+            "maxNumberOfWorkers": "0",
+            "resources": [
+              {
+                "apiVersion": "2015-08-01",
+                "name": "web",
+                "type": "config",
+                "dependsOn": [
+                  "[resourceId('Microsoft.Web/Sites', variables('appServiceName'))]"
+                ],
+                "properties": {
+                  "httpLoggingEnabled": true
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}
