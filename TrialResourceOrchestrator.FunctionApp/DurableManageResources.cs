@@ -43,7 +43,7 @@ namespace TrialResourceOrchestrator.FunctionApp
 
             foreach (var template in templatesWithMetadata.Where(a=> a.Subscriptions.Count>0 && a.QueueSizeToMaintain>0))
             {
-                var count = queueClient().GetQueueReference(template.QueueName).ApproximateMessageCount ?? 0;
+                var count = 0;//queueClient().GetQueueReference(template.QueueName).ApproximateMessageCount ?? 
                 var resourcegroupsCreated = await context.CallActivityAsync<int>("GetResourceGroupsCreated", template);
                 log.LogInformation($"Template: {template.Name} has queueSize: {count} and resourcegroupscreated: {resourcegroupsCreated}");
                 template.CurrentQueueSize = count;
@@ -52,7 +52,7 @@ namespace TrialResourceOrchestrator.FunctionApp
             context.SetCustomStatus("SetItemsToCreate");
             var taskList = new List<Task>();
             taskList.AddRange(templatesWithMetadata.Where(a => a.ItemstoCreate > 0 && a.QueueSizeToMaintain > 0).Select(a => context.CallSubOrchestratorAsync("CreateATrialResource", new TrialResource { Template = a })));
-            context.SetCustomStatus("SetItemsToCreate");
+            context.SetCustomStatus("WaitForItemsToGetCreated");
             await Task.WhenAll(taskList.ToArray());
             context.SetCustomStatus("MissingItemsCreated");
             DateTime nextCleanup = context.CurrentUtcDateTime.AddSeconds(10);
@@ -99,6 +99,8 @@ namespace TrialResourceOrchestrator.FunctionApp
 
             resource = await context.CallActivityAsync<TrialResource>("AddResourceGroupToQueue", resource);
             context.SetCustomStatus("ResourceAddedToQueue");
+            resource = await context.CallActivityAsync<TrialResource>("TagQueuedUpItem", resource);
+            context.SetCustomStatus("QueuedItemTagged");
 
             //telemetry.TrackDependency( "ARM", "CreateATrialResource", JsonConvert.SerializeObject(resource), start, DateTime.UtcNow-start, true);
             // sleep between cleanups
@@ -126,6 +128,26 @@ namespace TrialResourceOrchestrator.FunctionApp
             {
                 LogException("Exception queueing up ResourceGroup", ex, log);
             }
+        }
+
+        [FunctionName("TagQueuedUpItem")]
+        public static async Task<TrialResource> TagQueuedUpItem([ActivityTrigger] TrialResource resource, ILogger log)
+        {
+            try
+            {
+                log.LogInformation($"Tagging queued Up Item {resource.ResourceGroupName}  in {resource.SubscriptionId} region {resource.Template.Region}");
+                var armClient = await ArmClient.GetAzureClient(resource, log);
+                var rg = await armClient.WithSubscription(resource.SubscriptionId)
+                    .ResourceGroups.GetByNameAsync(resource.ResourceGroupName);
+                await rg.Update().WithTag("deployed","true").ApplyAsync();
+                resource.Status = ResourceStatus.AvailableForAssignment;
+            }
+            catch (Exception ex)
+            {
+                LogException("Exception tagging queued up Item", ex, log);
+            }
+            return resource;
+
         }
 
         [FunctionName("GetResourceGroupsCreated")]
@@ -214,7 +236,7 @@ namespace TrialResourceOrchestrator.FunctionApp
         public static async Task<TrialResource> CheckDeploymentStatus([ActivityTrigger] TrialResource resource, ILogger log)
         {
             try
-            {
+            {   
                 log.LogInformation($"Checking Deployment Status {resource.ResourceGroupName} in {resource.SubscriptionId} |Attempt:{resource.Template.DeploymentCheckAttempt}/{resource.Template.DeploymentCheckTries} |Template{resource.Template.Name} |Region:{resource.Template.Region}");
                 var azure = await ArmClient.GetAzureClient(resource,log);
 

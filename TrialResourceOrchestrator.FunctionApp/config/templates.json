@@ -8,7 +8,7 @@
     "fileName": "Api Contacts List.zip",
     "language": null,
     "CsmTemplateFilePath": "FreeSiteARMTemplate",
-    "msdeployPackageUrl": "https://tryappservicetemplates.blob.core.windows.net/zipped/Api/Api%20Contacts%20List.zip",
+    "msdeployPackageUrl": "https://tro.blob.core.windows.net/zipped/Templates/Api/Api%20Contacts%20List.zip",
     "isLinux": false
   },
   {
@@ -20,7 +20,7 @@
     "fileName": "Api Todo List.zip",
     "language": null,
     "CsmTemplateFilePath": "FreeSiteARMTemplate",
-    "msdeployPackageUrl": "https://tryappservicetemplates.blob.core.windows.net/zipped/Api/Api%20Todo%20List.zip",
+    "msdeployPackageUrl": "https://tro.blob.core.windows.net/zipped/Templates/Api/Api%20Todo%20List.zip",
     "isLinux": false
   },
   {
@@ -32,7 +32,7 @@
     "fileName": "ASP.NET Core 1.0.zip",
     "language": "C#",
     "CsmTemplateFilePath": "FreeSiteARMTemplate",
-    "msdeployPackageUrl": "https://tryappservicetemplates.blob.core.windows.net/zipped/C%23/ASP.NET%20Core%201.0.zip",
+    "msdeployPackageUrl": "https://tro.blob.core.windows.net/zipped/Templates/C%23/ASP.NET%20Core%201.0.zip",
     "isLinux": false
   },
   {
@@ -44,7 +44,7 @@
     "fileName": "ASP.NET Empty Site.zip",
     "language": "C#",
     "CsmTemplateFilePath": "FreeSiteARMTemplate",
-    "msdeployPackageUrl": "https://tryappservicetemplates.blob.core.windows.net/zipped/C%23/ASP.NET%20Empty%20Site.zip",
+    "msdeployPackageUrl": "https://tro.blob.core.windows.net/zipped/Templates/C%23/ASP.NET%20Empty%20Site.zip",
     "isLinux": false
   },
   {
@@ -56,7 +56,7 @@
     "fileName": "MVC 5 With Entity Framework.zip",
     "language": "C#",
     "CsmTemplateFilePath": "FreeSiteARMTemplate",
-    "msdeployPackageUrl": "https://tryappservicetemplates.blob.core.windows.net/zipped/C%23/MVC%205%20With%20Entity%20Framework.zip",
+    "msdeployPackageUrl": "https://tro.blob.core.windows.net/zipped/Templates/C%23/MVC%205%20With%20Entity%20Framework.zip",
     "isLinux": false,
     "queueSizeToMaintain": 0
   },
@@ -69,7 +69,7 @@
     "fileName": "Personal Site.zip",
     "language": "C#",
     "CsmTemplateFilePath": "FreeSiteARMTemplate",
-    "msdeployPackageUrl": "https://tryappservicetemplates.blob.core.windows.net/zipped/C%23/Personal%20Site.zip",
+    "msdeployPackageUrl": "https://tro.blob.core.windows.net/zipped/Templates/C%23/Personal%20Site.zip",
     "isLinux": false,
     "queueSizeToMaintain": 0
   },
@@ -82,7 +82,7 @@
     "fileName": "Express.zip",
     "language": "Default",
     "CsmTemplateFilePath": "FreeSiteARMTemplate",
-    "msdeployPackageUrl": "https://tryappservicetemplates.blob.core.windows.net/zipped/Default/Express.zip",
+    "msdeployPackageUrl": "https://tro.blob.core.windows.net/zipped/Templates/Default/Express.zip",
     "isLinux": false,
     "queueSizeToMaintain": 0
   },
@@ -95,7 +95,7 @@
     "fileName": "Java Coffee Shop.zip",
     "language": "Default",
     "CsmTemplateFilePath": "FreeSiteARMTemplate",
-    "msdeployPackageUrl": "https://tryappservicetemplates.blob.core.windows.net/zipped/Default/Java%20Coffee%20Shop.zip",
+    "msdeployPackageUrl": "https://tro.blob.core.windows.net/zipped/Templates/Default/Java%20Coffee%20Shop.zip",
     "isLinux": false,
     "queueSizeToMaintain": 0
   },
@@ -108,7 +108,7 @@
     "fileName": "MVC 5 With Entity Framework.zip",
     "language": "Default",
     "CsmTemplateFilePath": "FreeSiteARMTemplate",
-    "msdeployPackageUrl": "https://tryappservicetemplates.blob.core.windows.net/zipped/Default/MVC%205%20With%20Entity%20Framework.zip",
+    "msdeployPackageUrl": "https://tro.blob.core.windows.net/zipped/Templates/Default/MVC%205%20With%20Entity%20Framework.zip",
     "isLinux": false,
     "queueSizeToMaintain": 0
   },
@@ -121,7 +121,7 @@
     "fileName": "Go Sample App.zip",
     "language": "Go",
     "CsmTemplateFilePath": "FreeSiteARMTemplate",
-    "msdeployPackageUrl": "https://tryappservicetemplates.blob.core.windows.net/zipped/Go/Go%20Sample%20App.zip",
+    "msdeployPackageUrl": "https://tro.blob.core.windows.net/zipped/Templates/Go/Go%20Sample%20App.zip",
     "isLinux": false,
     "queueSizeToMaintain": 0
   },
@@ -134,7 +134,7 @@
     "fileName": "Boilerplate.zip",
     "language": "HTML5",
     "CsmTemplateFilePath": "FreeSiteARMTemplate",
-    "msdeployPackageUrl": "https://tryappservicetemplates.blob.core.windows.net/zipped/HTML5/Boilerplate.zip",
+    "msdeployPackageUrl": "https://tro.blob.core.windows.net/zipped/Templates/HTML5/Boilerplate.zip",
     "isLinux": false,
     "queueSizeToMaintain": 0
   },
@@ -147,7 +147,7 @@
     "fileName": "HTML5 Empty Site.zip",
     "language": "HTML5",
     "CsmTemplateFilePath": "FreeSiteARMTemplate",
-    "msdeployPackageUrl": "https://tryappservicetemplates.blob.core.windows.net/zipped/HTML5/HTML5%20Empty%20Site.zip",
+    "msdeployPackageUrl": "https://tro.blob.core.windows.net/zipped/Templates/HTML5/HTML5%20Empty%20Site.zip",
     "isLinux": false,
     "queueSizeToMaintain": 0
   },
@@ -160,7 +160,7 @@
     "fileName": "Java Coffee Shop.zip",
     "language": "Java",
     "CsmTemplateFilePath": "FreeSiteARMTemplate",
-    "msdeployPackageUrl": "https://tryappservicetemplates.blob.core.windows.net/zipped/Java/Java%20Coffee%20Shop.zip",
+    "msdeployPackageUrl": "https://tro.blob.core.windows.net/zipped/Templates/Java/Java%20Coffee%20Shop.zip",
     "isLinux": false,
     "queueSizeToMaintain": 0
   },
@@ -173,7 +173,7 @@
     "fileName": "Field Engineer.zip",
     "language": null,
     "CsmTemplateFilePath": "FreeSiteARMTemplate",
-    "msdeployPackageUrl": "https://tryappservicetemplates.blob.core.windows.net/zipped/Mobile/Field%20Engineer.zip",
+    "msdeployPackageUrl": "https://tro.blob.core.windows.net/zipped/Templates/Mobile/Field%20Engineer.zip",
     "isLinux": false,
     "queueSizeToMaintain": 0
   },
@@ -186,7 +186,7 @@
     "fileName": "Todo List.zip",
     "language": null,
     "CsmTemplateFilePath": "FreeSiteARMTemplate",
-    "msdeployPackageUrl": "https://tryappservicetemplates.blob.core.windows.net/zipped/Mobile/Todo%20List.zip",
+    "msdeployPackageUrl": "https://tro.blob.core.windows.net/zipped/Templates/Mobile/Todo%20List.zip",
     "isLinux": false,
     "queueSizeToMaintain": 0
   },
@@ -199,7 +199,7 @@
     "fileName": "Xamarin CRM.zip",
     "language": null,
     "CsmTemplateFilePath": "FreeSiteARMTemplate",
-    "msdeployPackageUrl": "https://tryappservicetemplates.blob.core.windows.net/zipped/Mobile/Xamarin%20CRM.zip",
+    "msdeployPackageUrl": "https://tro.blob.core.windows.net/zipped/Templates/Mobile/Xamarin%20CRM.zip",
     "isLinux": false,
     "queueSizeToMaintain": 0
   },
@@ -212,7 +212,7 @@
     "fileName": "Express.zip",
     "language": "NodeJs",
     "CsmTemplateFilePath": "FreeSiteARMTemplate",
-    "msdeployPackageUrl": "https://tryappservicetemplates.blob.core.windows.net/zipped/NodeJs/Express.zip",
+    "msdeployPackageUrl": "https://tro.blob.core.windows.net/zipped/Templates/NodeJs/Express.zip",
     "isLinux": false,
     "queueSizeToMaintain": 0
   },
@@ -225,7 +225,7 @@
     "fileName": "PHP Empty Site.zip",
     "language": "PHP",
     "CsmTemplateFilePath": "FreeSiteARMTemplate",
-    "msdeployPackageUrl": "https://tryappservicetemplates.blob.core.windows.net/zipped/PHP/PHP%20Empty%20Site.zip",
+    "msdeployPackageUrl": "https://tro.blob.core.windows.net/zipped/Templates/PHP/PHP%20Empty%20Site.zip",
     "isLinux": false,
     "queueSizeToMaintain": 0
   },
@@ -238,7 +238,7 @@
     "fileName": "WonderCMS.zip",
     "language": "PHP",
     "CsmTemplateFilePath": "FreeSiteARMTemplate",
-    "msdeployPackageUrl": "https://tryappservicetemplates.blob.core.windows.net/zipped/PHP/WonderCMS.zip",
+    "msdeployPackageUrl": "https://tro.blob.core.windows.net/zipped/Templates/PHP/WonderCMS.zip",
     "isLinux": false,
     "queueSizeToMaintain": 0
   },
@@ -251,7 +251,7 @@
     "fileName": "WordPress.zip",
     "language": "PHP",
     "CsmTemplateFilePath": "FreeSiteARMTemplate",
-    "msdeployPackageUrl": "https://tryappservicetemplates.blob.core.windows.net/zipped/PHP/WordPress.zip",
+    "msdeployPackageUrl": "https://tro.blob.core.windows.net/zipped/Templates/PHP/WordPress.zip",
     "isLinux": false,
     "queueSizeToMaintain": 0
   },
@@ -264,7 +264,7 @@
     "fileName": "Bottle.zip",
     "language": "Python",
     "CsmTemplateFilePath": "FreeSiteARMTemplate",
-    "msdeployPackageUrl": "https://tryappservicetemplates.blob.core.windows.net/zipped/Python/Bottle.zip",
+    "msdeployPackageUrl": "https://tro.blob.core.windows.net/zipped/Templates/Python/Bottle.zip",
     "isLinux": false,
     "queueSizeToMaintain": 0
   },
@@ -277,7 +277,7 @@
     "fileName": "django.zip",
     "language": "Python",
     "CsmTemplateFilePath": "FreeSiteARMTemplate",
-    "msdeployPackageUrl": "https://tryappservicetemplates.blob.core.windows.net/zipped/Python/django.zip",
+    "msdeployPackageUrl": "https://tro.blob.core.windows.net/zipped/Templates/Python/django.zip",
     "isLinux": false,
     "queueSizeToMaintain": 0
   },
@@ -290,7 +290,7 @@
     "fileName": "Flask.zip",
     "language": "Python",
     "CsmTemplateFilePath": "FreeSiteARMTemplate",
-    "msdeployPackageUrl": "https://tryappservicetemplates.blob.core.windows.net/zipped/Python/Flask.zip",
+    "msdeployPackageUrl": "https://tro.blob.core.windows.net/zipped/Templates/Python/Flask.zip",
     "isLinux": false,
     "queueSizeToMaintain": 0
   },
